@@ -172,6 +172,38 @@ app.get('/orders/:userEmail', async (req, res) => {
   }
 });
 
+// Order routes
+app.post('/orders', async (req, res) => {
+  try {
+    const { userEmail, items, totalAmount, deliveryAddress } = req.body;
+    
+    const order = new Order({
+      userEmail,
+      items,
+      totalAmount,
+      deliveryAddress
+    });
+    
+    await order.save();
+    res.status(201).json({ message: 'Order placed successfully', order });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({ message: 'Failed to place order' });
+  }
+});
+
+app.get('/orders/:userEmail', async (req, res) => {
+  try {
+    const orders = await Order.find({ userEmail: req.params.userEmail })
+      .sort({ orderDate: -1 })
+      .lean();
+    res.json({ orders });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Failed to fetch orders' });
+  }
+});
+
 // Start server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
